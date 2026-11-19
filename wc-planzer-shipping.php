@@ -31,6 +31,7 @@ register_deactivation_hook(__FILE__, function () {
 });
 
 require PLANZER_ROOT_PATH . '/inc/updater.php';
+require PLANZER_ROOT_PATH . '/inc/fork-migrations.php';
 require PLANZER_ROOT_PATH . '/inc/precheck.php';
 
 if (! pluginRequirementsValid() && is_plugin_active(plugin_basename(__FILE__))) {
