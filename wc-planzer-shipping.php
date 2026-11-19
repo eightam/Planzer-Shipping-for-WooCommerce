@@ -3,7 +3,7 @@
 /**
  * Plugin Name: Shipping via Planzer for WooCommerce
  * Description: Shipping via Planzer for WooCommerce
- * Version: 1.0.32
+ * Version: 1.0.36.1
  * Author: Webwirkung <info@webwirkung.ch>
  * Author URI: https://webwirkung.ch/
  * Text Domain: planzer
@@ -11,6 +11,7 @@
  * Requires at least: 5.7
  * WC requires at least: 5.8
  * WC tested up to: 9.7.0
+ * Update URI: https://github.com/eightam/Planzer-Shipping-for-WooCommerce
  */
 
 define('PLANZER_NAME', 'Planzer');
@@ -29,6 +30,8 @@ register_deactivation_hook(__FILE__, function () {
     do_action('planzer/plugin/on_deactivate');
 });
 
+require PLANZER_ROOT_PATH . '/inc/updater.php';
+require PLANZER_ROOT_PATH . '/inc/fork-migrations.php';
 require PLANZER_ROOT_PATH . '/inc/precheck.php';
 
 if (! pluginRequirementsValid() && is_plugin_active(plugin_basename(__FILE__))) {
