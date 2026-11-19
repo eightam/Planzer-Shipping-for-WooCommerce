@@ -1,0 +1,55 @@
+# Builds the installable plugin ZIP and attaches it to a GitHub release.
+# Trigger: push a tag matching the plugin header version, e.g. `git tag v1.0.36.1 && git push origin v1.0.36.1`.
+# inc/updater.php on client sites picks up the `wc-planzer-shipping.zip` asset of the latest release.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches plugin version
+        run: |
+          header=$(sed -n 's/^ \* Version: *//p' wc-planzer-shipping.php | tr -d '\r')
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$header" != "$tag" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match plugin header Version $header"
+            exit 1
+          fi
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: composer:v2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
+      - name: Install JS dependencies
+        run: yarn install --non-interactive --ignore-engines
+
+      - name: Build assets and package
+        run: |
+          yarn run production
+          yarn run production --env.mixfile=webpack.build.mix.js
+          test -f build/wc-planzer-shipping/wc-planzer-shipping.php
+          test -f build/wc-planzer-shipping/vendor/autoload.php
+          test -f build/wc-planzer-shipping/dist/mix-manifest.json
+          cd build && zip -qr ../wc-planzer-shipping.zip wc-planzer-shipping
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: wc-planzer-shipping.zip
+          generate_release_notes: true
