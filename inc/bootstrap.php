@@ -12,7 +12,7 @@ if (! function_exists('planzerDoc') && function_exists('Planzer\\planzerDoc')) {
 if (! function_exists('planzer') && function_exists('Planzer\\planzer')) {
     function planzer(string $moduleName = ''): object
     {
-;        return Planzer\planzer($moduleName);
+        return Planzer\planzer($moduleName);
     }
 }
 
@@ -56,18 +56,10 @@ if (! function_exists('planzerBoot')) {
     }
 }
 
-if (! function_exists('isPlanzerWcPage')) {
-    function isPlanzerWcPage(array $pages): bool
-    {
-        if (! is_admin()) {
-            return false;
-        }
-
-        $page = isset($_GET['page']) ? sanitize_key((string) $_GET['page']) : '';
-
-        return $page !== '' && in_array($page, $pages, true);
-    }
-}
-
+/*
+ * Boot unconditionally on init (priority 5). Under HPOS, WooCommerce decides the wc- prefix
+ * at write time from whether the status is registered on that request, so a late or gated
+ * registration stores planzer-transmit instead of wc-planzer-transmit and the order list
+ * can never find those orders again.
+ */
 add_action("init", "planzerBoot", 5);
-/* HPOS Compatibility change: Under legacy storage, registering a status late just means a missing label (cosmetic, self-heals on the next properly-registered request). Under HPOS, WooCommerce decides the wc- prefix once, at write time, from whether the status is registered on that very request — so a late/gated registration bakes a permanently wrong key (planzer-transmit instead of wc-planzer-transmit) into the authoritative table, and the admin list — which always queries the prefixed key — can never find those orders again. */
